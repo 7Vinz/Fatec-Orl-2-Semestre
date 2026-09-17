@@ -1,0 +1,159 @@
+# Biblioteca Faker: para gerar nomes, datas e dados fictícios
+
+from faker import Faker
+
+# Cria um objeto Faker em português do Brasil
+fake = Faker("pt_BR")
+
+# Classe Produto
+class Produto:
+    def __init__(self, nome, preco_compra, preco_venda, validade, quantidade):
+        self.nome = nome
+        self.preco_compra = preco_compra
+        self.preco_venda = preco_venda
+        self.validade = validade
+        self.quantidade = quantidade
+
+    def __str__(self):
+        return (
+            f"{self.nome} | Compra: R${self.preco_compra:.2f} | "
+            f"Venda: R${self.preco_venda:.2f} | Estoque: {self.quantidade}"
+        )
+
+# Classe Comanda
+class Comanda:
+    def __init__(self, numero):
+        self.numero = numero
+        self.cliente = fake.name()  # Gera um nome aleatório
+        self.data_abertura = fake.date_time_this_year()
+        self.refeicoes = []
+        self.bebidas = []
+
+    def adicionar_refeicao(self, nome, preco):
+        # Adiciona uma refeição à comanda
+        self.refeicoes.append({"nome": nome, "preco": preco})
+
+    def adicionar_bebida(self, nome, preco):
+        # Adiciona uma bebida à comanda
+        self.bebidas.append({"nome": nome, "preco": preco})
+
+    def remover_refeicao(self, nome):
+        # Remove uma refeição da comanda
+        for item in self.refeicoes:
+            if item["nome"] == nome:
+                self.refeicoes.remove(item)
+                break
+
+    def remover_bebida(self, nome):
+        # Remove uma bebida da comanda
+        for item in self.bebidas:
+            if item["nome"] == nome:
+                self.bebidas.remove(item)
+                break
+
+    def total(self):
+        # Soma o valor de refeições e bebidas
+        total = 0
+        for item in self.refeicoes:
+            total += item["preco"]
+        for item in self.bebidas:
+            total += item["preco"]
+        return total
+
+    def mostrar(self):
+        # Mostra o resumo da comanda
+        print(f"\n=== COMANDA {self.numero} ===")
+        print(f"Cliente: {self.cliente}")
+        print(f"Data de abertura: {self.data_abertura.strftime('%d/%m/%Y %H:%M')}")
+        print("\nRefeições:")
+        if not self.refeicoes:
+            print("Nenhuma refeição adicionada.")
+        else:
+            for item in self.refeicoes:
+                print(f" - {item['nome']}: R${item['preco']:.2f}")
+
+        print("\nBebidas:")
+        if not self.bebidas:
+            print("Nenhuma bebida adicionada.")
+        else:
+            for item in self.bebidas:
+                print(f" - {item['nome']}: R${item['preco']:.2f}")
+
+        print(f"\nTotal da comanda: R${self.total():.2f}")
+
+# Classe Estoque
+class Estoque:
+    def __init__(self):
+        self.produtos = {}
+
+    def adicionar_produto(self, produto):
+        # Adiciona um produto ao estoque
+        self.produtos[produto.nome] = produto
+
+    def atualizar_quantidade(self, nome, quantidade):
+        # Atualiza a quantidade de um produto
+        if nome in self.produtos:
+            self.produtos[nome].quantidade += quantidade
+        else:
+            print(f"Produto '{nome}' não encontrado no estoque.")
+
+    def mostrar(self):
+        # Exibe os produtos disponíveis
+        print("\n=== ESTOQUE ===")
+        for produto in self.produtos.values():
+            print(produto)
+
+# Classe Pagamento
+class Pagamento:
+    def __init__(self, cliente, numero_comanda, forma_pagamento, valor_total):
+        self.cliente = cliente
+        self.numero_comanda = numero_comanda
+        self.forma_pagamento = forma_pagamento
+        self.valor_total = valor_total
+        self.data_pagamento = fake.date_time_this_year()
+
+    def mostrar(self):
+        # Exibe os dados do pagamento
+        print("\n=== PAGAMENTO ===")
+        print(f"Cliente: {self.cliente}")
+        print(f"Comanda: {self.numero_comanda}")
+        print(f"Forma de pagamento: {self.forma_pagamento}")
+        print(f"Valor total: R${self.valor_total:.2f}")
+        print(f"Data: {self.data_pagamento.strftime('%d/%m/%Y %H:%M')}")
+
+# Programa principal
+if __name__ == "__main__":
+    # Cria o estoque do restaurante
+    estoque = Estoque()
+
+    # Produtos do restaurante
+    estoque.adicionar_produto(Produto("Frango", 5.00, 18.50, "2026-09-20", 15))
+    estoque.adicionar_produto(Produto("Arroz", 2.00, 12.00, "2026-09-19", 25))
+    estoque.adicionar_produto(Produto("Coca-Cola", 1.50, 7.00, "2026-09-30", 30))
+    estoque.adicionar_produto(Produto("Água", 0.80, 4.50, "2026-09-22", 20))
+
+    # Mostra o estoque
+    estoque.mostrar()
+
+    # Cria uma comanda
+    comanda = Comanda(101)
+
+    # Adiciona refeições e bebidas
+    comanda.adicionar_refeicao("Frango com Arroz", 18.50)
+    comanda.adicionar_refeicao("Salada", 12.00)
+    comanda.adicionar_bebida("Coca-Cola", 7.00)
+    comanda.adicionar_bebida("Água", 4.50)
+
+    # Mostra o resumo da comanda
+    comanda.mostrar()
+
+    # Realiza o pagamento
+    pagamento = Pagamento(comanda.cliente, comanda.numero, "PIX", comanda.total())
+    pagamento.mostrar()
+
+    # Atualiza o estoque após a venda
+    estoque.atualizar_quantidade("Coca-Cola", -1)
+    estoque.atualizar_quantidade("Água", -1)
+
+    print("\nEstoque após a venda:")
+    estoque.mostrar()
